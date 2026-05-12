@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Post } from './post.entity';
+import { User } from 'src/user/entities/user.entity';
 
 @Entity()
 export class Comment {
@@ -15,11 +16,11 @@ export class Comment {
   @Column({ type: 'varchar' })
   content!: string;
 
-  @Column({ type: 'varchar' })
-  author!: string;
-
   @CreateDateColumn()
   createdAt!: Date;
+
+  @ManyToOne(() => User, (user) => user.comments)
+  user!: User;
 
   @ManyToOne(() => Post, (post) => post.comments)
   post!: Post;
