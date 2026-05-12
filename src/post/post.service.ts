@@ -1,26 +1,33 @@
-import { Injectable } from '@nestjs/common';
-import { CreatePostDto } from './dto/create-post.dto';
-import { UpdatePostDto } from './dto/update-post.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Repository } from 'typeorm';
+import { Post } from './entities/post.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CreateCommentDto } from './dto/create-comment.dto';
+import { Comment as CommentEntity } from './entities/comment.entity';
 
 @Injectable()
 export class PostService {
-  create(createPostDto: CreatePostDto) {
-    return 'This action adds a new post';
-  }
+  constructor(
+    @InjectRepository(Post)
+    private postRepo: Repository<Post>,
 
-  findAll() {
-    return `This action returns all post`;
-  }
+    @InjectRepository(CommentEntity)
+    private commentRepo: Repository<CommentEntity>,
+  ) {}
 
-  findOne(id: number) {
-    return `This action returns a #${id} post`;
-  }
+  async createComment(
+    postId: number,
+    dto: CreateCommentDto,
+  ): Promise<CommentEntity> {
+    const post = await this.postRepo.findOneBy({ id: postId });
 
-  update(id: number, updatePostDto: UpdatePostDto) {
-    return `This action updates a #${id} post`;
-  }
+    if (!post) throw new NotFoundException(`Post ${postId} no existe`);
 
-  remove(id: number) {
-    return `This action removes a #${id} post`;
+    const comment = this.commentRepo.create({
+      ...dto,
+      post,
+    });
+
+    return this.commentRepo.save(comment);
   }
 }
